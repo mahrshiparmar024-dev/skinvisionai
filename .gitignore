@@ -135,3 +135,11 @@ dmypy.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Project-specific
+models/*.h5
+models/*.keras
+reports/*.pdf
+SkinVisionAI_Project.zip
+SkinVisionAI_Presentation.pptx
+generate_ppt.py~$*

@@ -1,0 +1,11 @@
+[theme]
+primaryColor = "#0A6C9E"
+backgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#E8F4FD"
+textColor = "#1F2937"
+font = "sans serif"
+
+[server]
+maxUploadSize = 10
+enableCORS = false
+enableXsrfProtection = true

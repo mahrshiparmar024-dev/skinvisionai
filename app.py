@@ -59,7 +59,52 @@ st.set_page_config(
 css_path = os.path.join(os.path.dirname(__file__), "styles", "custom.css")
 if os.path.exists(css_path):
     with open(css_path) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        css_content = f.read()
+        # MOBILE FIX: Remove header hiding so hamburger menu shows on mobile
+        css_content = css_content.replace('header {visibility: hidden;}', 
+                                          'header {visibility: visible !important;}')
+        st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
+        # Additional mobile navigation CSS
+        st.markdown("""
+        <style>
+        /* Show header on mobile for hamburger menu */
+        @media (max-width: 768px) {
+            header[data-testid="stHeader"] {
+                visibility: visible !important;
+                background: rgba(15, 23, 42, 0.95) !important;
+            }
+            /* Compact hero on mobile */
+            .hero-section { padding: 32px 20px !important; }
+            .hero-title { font-size: 28px !important; }
+            .hero-subtitle { font-size: 15px !important; }
+            /* Mobile nav bar styling */
+            .mobile-nav-bar {
+                background: linear-gradient(135deg, #0A6C9E, #085580);
+                padding: 8px 16px;
+                border-radius: 12px;
+                margin-bottom: 16px;
+            }
+            .mobile-nav-bar p {
+                color: white !important;
+                font-size: 13px !important;
+                margin: 0 !important;
+            }
+        }
+        /* Desktop: header can stay hidden, hide mobile nav */
+        @media (min-width: 769px) {
+            header[data-testid="stHeader"] {
+                visibility: hidden;
+            }
+            .mobile-nav-bar {
+                display: none !important;
+            }
+            /* Hide the mobile selectbox on desktop */
+            div[data-testid="stSelectbox"]:first-of-type {
+                display: none !important;
+            }
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
 # ── Load Model (cached) ──
 @st.cache_resource
@@ -136,9 +181,29 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════
-#  SIDEBAR NAVIGATION
+#  NAVIGATION (Sidebar + Mobile Top Bar)
 # ══════════════════════════════════════════════════════════
 
+NAV_OPTIONS = [
+    "🏠 Home", "📖 About", "⚙️ How It Works", "🧠 Model Details",
+    "🔬 Try the Detector", "📊 Comparison", "⚖️ Disclaimer & Ethics"
+]
+
+# ── Mobile Top Navigation Bar ──
+# (Visible to all users as a fallback, especially mobile where sidebar is collapsed)
+st.markdown("""
+<div class="mobile-nav-bar">
+    <p>📱 <strong>Tap ☰ (top-left)</strong> to open the navigation menu, or use the dropdown below:</p>
+</div>
+""", unsafe_allow_html=True)
+mobile_page = st.selectbox(
+    "Navigate to:", NAV_OPTIONS,
+    index=0,
+    key="mobile_nav",
+    label_visibility="collapsed"
+)
+
+# ── Sidebar Navigation ──
 with st.sidebar:
     st.markdown(f"""
     <div style="text-align:center; padding:16px 0 24px;">
@@ -150,11 +215,12 @@ with st.sidebar:
     
     st.markdown("---")
     
-    page = st.radio(
+    sidebar_page = st.radio(
         "Navigation",
-        ["🏠 Home", "📖 About", "⚙️ How It Works", "🧠 Model Details",
-         "🔬 Try the Detector", "📊 Comparison", "⚖️ Disclaimer & Ethics"],
-        label_visibility="collapsed"
+        NAV_OPTIONS,
+        index=NAV_OPTIONS.index(mobile_page),
+        label_visibility="collapsed",
+        key="sidebar_nav"
     )
     
     st.markdown("---")
@@ -180,6 +246,10 @@ with st.sidebar:
             </p>
         </div>
         """, unsafe_allow_html=True)
+
+# Page selection: use whichever was last changed
+# Mobile dropdown and sidebar radio sync through index binding
+page = sidebar_page
 
 
 # ══════════════════════════════════════════════════════════
